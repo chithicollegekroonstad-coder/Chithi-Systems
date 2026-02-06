@@ -1,6 +1,8 @@
 // app/api/auth/login/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { verifyPassword, createSession } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
@@ -14,9 +16,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find student by student number
-    const user = await prisma.user.findUnique({
-      where: { studentNumber: studentNumber.toUpperCase() },
+    const normalizedStudentNumber = studentNumber.trim().toUpperCase();
+
+    // Find student with Drizzle
+    const user = await db.query.users.findFirst({
+      where: eq(users.studentNumber, normalizedStudentNumber),
+      columns: {
+        id: true,
+        email: true,
+        passwordHash: true,
+        role: true,
+        status: true,
+        firstName: true,
+        lastName: true,
+        studentNumber: true,
+        isLocked: true,
+      },
     });
 
     if (!user || !user.passwordHash) {
@@ -26,7 +41,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if student (not admin)
+    // Must be STUDENT (not admin or superadmin)
     if (user.role !== "STUDENT") {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -34,7 +49,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if account is frozen
+    // Account frozen?
     if (user.status === "FROZEN") {
       return NextResponse.json(
         {
@@ -46,6 +61,7 @@ export async function POST(req: NextRequest) {
 
     // Verify password
     const isValid = await verifyPassword(password, user.passwordHash);
+
     if (!isValid) {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -61,7 +77,7 @@ export async function POST(req: NextRequest) {
       user: {
         id: user.id,
         email: user.email,
-        name: `${user.firstName} ${user.lastName}`,
+        name: `${user.firstName || ""} ${user.lastName || ""}`.trim(),
         studentNumber: user.studentNumber,
       },
     });
