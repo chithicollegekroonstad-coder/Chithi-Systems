@@ -4,52 +4,52 @@
 import { db } from "@/db";
 import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
-import bcrypt from "bcryptjs";
 import { revalidatePath } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
-// 1. Create new admin (no password – they set it later)
-export async function createAdmin(formData: FormData) {
+// 1. Create new STAFF account (used by admins and super-admin)
+export async function createStaff(formData: FormData) {
   const email = formData.get("email")?.toString().trim();
   const firstName = formData.get("firstName")?.toString().trim();
   const lastName = formData.get("lastName")?.toString().trim();
 
   if (!email || !firstName || !lastName) {
-    return { error: "Email, first name, and last name are required" };
+    throw new Error("Email, first name, and last name are required");
   }
 
   const existing = await db.select().from(users).where(eq(users.email, email));
   if (existing.length > 0) {
-    return { error: "Email already in use" };
+    throw new Error("Email already in use");
   }
 
   await db.insert(users).values({
     email,
     firstName,
     lastName,
-    role: "ADMIN",
+    role: "STAFF",
     isLocked: false,
-    // No passwordHash → they can't log in yet
+    // No passwordHash → they can't log in until they set it
   });
 
   revalidatePath("/super-admin");
-  return { success: "Admin created successfully" };
+  revalidatePath("/admin/dashboard");
+  redirect("/admin/dashboard?message=" + encodeURIComponent("Staff created successfully"));
 }
 
-// 2. Lock admin
+// 2. Lock admin (super-admin only)
 export async function lockAdmin(formData: FormData) {
   const adminId = Number(formData.get("adminId"));
 
-  if (!adminId) return { error: "Admin ID required" };
+  if (!adminId) throw new Error("Admin ID required");
 
   const [target] = await db
     .select({ role: users.role })
     .from(users)
     .where(eq(users.id, adminId));
 
-  if (!target) return { error: "Admin not found" };
-  if (target.role === "SUPERADMIN") return { error: "Cannot lock super admin" };
+  if (!target) throw new Error("Admin not found");
+  if (target.role === "SUPERADMIN") throw new Error("Cannot lock super admin");
 
   await db
     .update(users)
@@ -61,14 +61,14 @@ export async function lockAdmin(formData: FormData) {
     .where(eq(users.id, adminId));
 
   revalidatePath("/super-admin");
-  return { success: "Admin locked" };
+  redirect("/super-admin?message=" + encodeURIComponent("Admin locked successfully"));
 }
 
-// 3. Unlock admin
+// 3. Unlock admin (super-admin only)
 export async function unlockAdmin(formData: FormData) {
   const adminId = Number(formData.get("adminId"));
 
-  if (!adminId) return { error: "Admin ID required" };
+  if (!adminId) throw new Error("Admin ID required");
 
   await db
     .update(users)
@@ -80,33 +80,73 @@ export async function unlockAdmin(formData: FormData) {
     .where(eq(users.id, adminId));
 
   revalidatePath("/super-admin");
-  return { success: "Admin unlocked" };
+  redirect("/super-admin?message=" + encodeURIComponent("Admin unlocked successfully"));
 }
 
-// 4. Delete admin
+// 4. Delete admin (super-admin only)
 export async function deleteAdmin(formData: FormData) {
   const adminId = Number(formData.get("adminId"));
 
-  if (!adminId) return { error: "Admin ID required" };
+  if (!adminId) throw new Error("Admin ID required");
 
   const [target] = await db
     .select({ role: users.role })
     .from(users)
     .where(eq(users.id, adminId));
 
-  if (!target) return { error: "Admin not found" };
+  if (!target) throw new Error("Admin not found");
   if (target.role === "SUPERADMIN")
-    return { error: "Cannot delete super admin" };
+    throw new Error("Cannot delete super admin");
 
   await db.delete(users).where(eq(users.id, adminId));
 
   revalidatePath("/super-admin");
-  return { success: "Admin deleted" };
+  redirect("/super-admin?message=" + encodeURIComponent("Admin deleted successfully"));
 }
 
-// 5. Logout super admin
+// 5. Delete staff (admin or super-admin)
+export async function deleteStaff(formData: FormData) {
+  const staffId = Number(formData.get("staffId"));
+
+  if (!staffId) throw new Error("Staff ID required");
+
+  const [target] = await db
+    .select({ role: users.role })
+    .from(users)
+    .where(eq(users.id, staffId));
+
+  if (!target) throw new Error("Staff not found");
+  if (target.role !== "STAFF")
+    throw new Error("Can only delete staff accounts");
+
+  await db.delete(users).where(eq(users.id, staffId));
+
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/super-admin");
+  redirect("/admin/dashboard?message=" + encodeURIComponent("Staff deleted successfully"));
+}
+
+// 6. Logout super admin
 export async function logoutSuper() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   cookieStore.delete("super_access");
   redirect("/super-login");
+}
+
+// 7. Get all staff members (for dashboard)
+export async function getStaffMembers() {
+  const staff = await db
+    .select({
+      id: users.id,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+      role: users.role,
+      isLocked: users.isLocked,
+    })
+    .from(users)
+    .where(eq(users.role, "STAFF"))
+    .orderBy(users.createdAt);
+
+  return staff;
 }

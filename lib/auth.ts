@@ -6,25 +6,19 @@ import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 
-// ──────────────────────────────────────────────────────────────
-// SESSION MANAGEMENT - Simple & Reliable
-// ──────────────────────────────────────────────────────────────
-
-export async function createSession(userId: string) {
-  // Generate secure token
+export async function createSession(userId: string | number) {
   const token = randomBytes(32).toString("hex");
-
-  // Store in database (expires in 7 days)
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + 7);
 
+  const numUserId = typeof userId === "string" ? parseInt(userId) : userId;
+
   await db.insert(sessions).values({
-    userId,
+    userId: numUserId,
     token,
     expiresAt,
   });
 
-  // Set cookie
   const cookieStore = await cookies();
   cookieStore.set("session_token", token, {
     httpOnly: true,
@@ -43,39 +37,41 @@ export async function getSession() {
 
   if (!token) return null;
 
-  // Find session + user data (Drizzle relation query)
-  const session = await db.query.sessions.findFirst({
-    where: eq(sessions.token, token),
-    with: {
-      user: {
-        columns: {
-          id: true,
-          email: true,
-          firstName: true,
-          lastName: true,
-          role: true,
-          status: true,
-          studentNumber: true,
-          isLocked: true,
+  try {
+    const session = (await db.query.sessions.findFirst({
+      where: eq(sessions.token, token),
+      with: {
+        user: {
+          columns: {
+            id: true,
+            email: true,
+            firstName: true,
+            lastName: true,
+            role: true,
+            status: true,
+            studentNumber: true,
+            isLocked: true,
+          },
         },
       },
-    },
-  });
+    })) as any;
 
-  // Check if expired
-  if (!session || session.expiresAt < new Date()) {
-    if (session) {
-      await db.delete(sessions).where(eq(sessions.token, token));
+    if (!session || session.expiresAt < new Date()) {
+      if (session) {
+        await db.delete(sessions).where(eq(sessions.token, token));
+      }
+      return null;
     }
+
+    if (session.user && session.user.isLocked) {
+      return null;
+    }
+
+    return session.user || null;
+  } catch (error) {
+    console.error("Session error:", error);
     return null;
   }
-
-  // Check if user is locked
-  if (session.user.isLocked) {
-    return null;
-  }
-
-  return session.user;
 }
 
 export async function deleteSession() {
@@ -89,10 +85,6 @@ export async function deleteSession() {
   cookieStore.delete("session_token");
 }
 
-// ──────────────────────────────────────────────────────────────
-// PASSWORD UTILITIES
-// ──────────────────────────────────────────────────────────────
-
 export async function hashPassword(password: string) {
   return bcrypt.hash(password, 10);
 }
@@ -100,10 +92,6 @@ export async function hashPassword(password: string) {
 export async function verifyPassword(password: string, hash: string) {
   return bcrypt.compare(password, hash);
 }
-
-// ──────────────────────────────────────────────────────────────
-// ROLE CHECKS
-// ──────────────────────────────────────────────────────────────
 
 export async function requireAuth() {
   const user = await getSession();
@@ -116,20 +104,16 @@ export async function requireAuth() {
 export async function requireRole(role: "STUDENT" | "ADMIN" | "SUPERADMIN") {
   const user = await requireAuth();
 
-  if (role === "SUPERADMIN" && user.role !== "SUPERADMIN") {
+  if (role === "SUPERADMIN" && user?.role !== "SUPERADMIN") {
     throw new Error("Requires super admin access");
   }
 
-  if (role === "ADMIN" && user.role !== "ADMIN" && user.role !== "SUPERADMIN") {
+  if (role === "ADMIN" && user?.role !== "ADMIN" && user?.role !== "SUPERADMIN") {
     throw new Error("Requires admin access");
   }
 
   return user;
 }
-
-// ──────────────────────────────────────────────────────────────
-// USER UTILITIES
-// ──────────────────────────────────────────────────────────────
 
 export async function findUserByEmail(email: string) {
   return db.query.users.findFirst({

@@ -18,7 +18,6 @@ export async function POST(req: NextRequest) {
 
     const normalizedStudentNumber = studentNumber.trim().toUpperCase();
 
-    // Find student with Drizzle
     const user = await db.query.users.findFirst({
       where: eq(users.studentNumber, normalizedStudentNumber),
       columns: {
@@ -41,7 +40,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Must be STUDENT (not admin or superadmin)
     if (user.role !== "STUDENT") {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -49,7 +47,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Account frozen?
     if (user.status === "FROZEN") {
       return NextResponse.json(
         {
@@ -59,7 +56,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Verify password
     const isValid = await verifyPassword(password, user.passwordHash);
 
     if (!isValid) {
@@ -69,8 +65,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create session
-    await createSession(user.id);
+    // Create session — convert id to string
+    await createSession(user.id.toString());
 
     return NextResponse.json({
       success: true,

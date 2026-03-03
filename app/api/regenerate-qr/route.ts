@@ -1,15 +1,12 @@
-// app/api/regenerate-qr/route.ts (protected — only super admin)
+// app/api/regenerate-qr/route.ts
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { classes } from "@/db/schema";
+import { eq } from "drizzle-orm";
 import { randomBytes } from "crypto";
 
 export async function POST() {
   try {
-    // Optional: check super admin cookie here if needed
-    // const cookieStore = cookies();
-    // if (!cookieStore.get("super_access")?.value) return unauthorized
-
     const allClasses = await db.select().from(classes);
 
     for (const cls of allClasses) {

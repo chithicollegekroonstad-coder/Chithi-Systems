@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
-import { Loader2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function SetPasswordPage() {
   const router = useRouter();
@@ -16,6 +16,29 @@ export default function SetPasswordPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passwordStrength, setPasswordStrength] = useState<
+    "weak" | "medium" | "strong" | null
+  >(null);
+
+  // Optional: simple password strength checker
+  const checkPasswordStrength = (pwd: string) => {
+    if (pwd.length < 8) return "weak";
+    if (
+      pwd.length >= 12 &&
+      /[A-Z]/.test(pwd) &&
+      /[0-9]/.test(pwd) &&
+      /[^A-Za-z0-9]/.test(pwd)
+    ) {
+      return "strong";
+    }
+    return "medium";
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setPassword(value);
+    setPasswordStrength(checkPasswordStrength(value));
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,7 +53,7 @@ export default function SetPasswordPage() {
       return;
     }
 
-    if (!email) {
+    if (!email.trim()) {
       toast.error("Please enter your email");
       return;
     }
@@ -53,10 +76,17 @@ export default function SetPasswordPage() {
         throw new Error(data.error || "Failed to set password");
       }
 
-      toast.success("Password set successfully! You can now log in.");
-      router.push("/admin/login"); // or "/admin/login" if separate
+      toast.success("Password set successfully! You can now log in.", {
+        description: "Use your email and new password to access your account.",
+      });
+
+      // Redirect staff to staff login, others to admin/student login
+      router.push("/login/staff");
+      router.refresh();
     } catch (err: any) {
-      toast.error(err.message || "Something went wrong — check email");
+      toast.error("Could not set password", {
+        description: err.message || "Something went wrong — check your email",
+      });
     } finally {
       setLoading(false);
     }
@@ -70,9 +100,11 @@ export default function SetPasswordPage() {
             Set Your Password
           </CardTitle>
           <p className="text-gray-400 mt-2">
-            Use the email you were given when your account was created
+            Use the email you were given when your staff or admin account was
+            created
           </p>
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
@@ -95,11 +127,33 @@ export default function SetPasswordPage() {
                 id="password"
                 type="password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 required
                 minLength={8}
                 disabled={loading}
               />
+              {password && (
+                <div className="flex items-center gap-2 text-sm mt-1">
+                  {passwordStrength === "strong" && (
+                    <>
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span className="text-green-400">Strong password</span>
+                    </>
+                  )}
+                  {passwordStrength === "medium" && (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-yellow-500" />
+                      <span className="text-yellow-400">Medium strength</span>
+                    </>
+                  )}
+                  {passwordStrength === "weak" && (
+                    <>
+                      <AlertCircle className="h-4 w-4 text-red-500" />
+                      <span className="text-red-400">Weak — use 8+ chars</span>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -119,7 +173,14 @@ export default function SetPasswordPage() {
               disabled={loading}
               className="w-full bg-red-700 hover:bg-red-600"
             >
-              {loading ? "Setting..." : "Set Password & Activate Account"}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Setting password...
+                </>
+              ) : (
+                "Set Password & Activate Account"
+              )}
             </Button>
           </form>
         </CardContent>

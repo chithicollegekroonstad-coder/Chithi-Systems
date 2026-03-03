@@ -1,5 +1,5 @@
-// middleware.ts// middleware.ts
-export const runtime = "nodejs"; // ← this forces Node.js runtime
+// middleware.ts
+export const runtime = "nodejs";
 
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
@@ -30,7 +30,6 @@ export async function middleware(request: NextRequest) {
   const token = request.cookies.get("session_token")?.value;
 
   if (!token) {
-    // Redirect to appropriate login page
     if (pathname.startsWith("/super-admin")) {
       return NextResponse.redirect(new URL("/super-admin/login", request.url));
     }
@@ -42,7 +41,7 @@ export async function middleware(request: NextRequest) {
 
   // Verify session with Drizzle
   try {
-    const session = await db.query.sessions.findFirst({
+    const session = (await db.query.sessions.findFirst({
       where: eq(sessions.token, token),
       with: {
         user: {
@@ -52,10 +51,9 @@ export async function middleware(request: NextRequest) {
           },
         },
       },
-    });
+    })) as any;
 
     if (!session || session.expiresAt < new Date()) {
-      // Session expired or invalid → clean up
       await db.delete(sessions).where(eq(sessions.token, token));
 
       if (pathname.startsWith("/super-admin")) {
@@ -70,24 +68,23 @@ export async function middleware(request: NextRequest) {
     }
 
     // Check if user is locked
-    if (session.user.isLocked) {
+    if (session.user && session.user.isLocked) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
     // Check role permissions
     if (pathname.startsWith("/super-admin")) {
-      if (session.user.role !== "SUPERADMIN") {
+      if (session.user?.role !== "SUPERADMIN") {
         return NextResponse.redirect(new URL("/admin/dashboard", request.url));
       }
     }
 
     if (pathname.startsWith("/admin")) {
-      if (session.user.role !== "ADMIN" && session.user.role !== "SUPERADMIN") {
+      if (session.user?.role !== "ADMIN" && session.user?.role !== "SUPERADMIN") {
         return NextResponse.redirect(new URL("/attendance", request.url));
       }
     }
 
-    // All checks passed
     return NextResponse.next();
   } catch (error) {
     console.error("Middleware error:", error);
@@ -97,12 +94,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all paths except:
-     * - API routes
-     * - Static files
-     * - Images
-     */
     "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };

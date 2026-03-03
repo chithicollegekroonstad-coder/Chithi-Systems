@@ -66,8 +66,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Create session
-    await createSession(user.id);
+    // Create session — convert id to string
+    await createSession(user.id.toString());
 
     return NextResponse.json({
       success: true,

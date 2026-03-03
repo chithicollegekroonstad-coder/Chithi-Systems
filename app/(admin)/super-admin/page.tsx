@@ -17,7 +17,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Plus,
   Lock,
   Unlock,
   Trash2,
@@ -30,10 +29,14 @@ import {
   deleteAdmin,
   createAdmin,
   logoutSuper,
-} from "@/app/actions/admin-management";
+} from "@/app/actions/super-admin";
 
-export default async function SuperAdminDashboard() {
-  const cookieStore = await cookies(); // ← fixed line
+export default async function SuperAdminDashboard({
+  searchParams,
+}: {
+  searchParams: { [key: string]: string | string[] | undefined };
+}) {
+  const cookieStore = await cookies();
   const access = cookieStore.get("super_access")?.value;
 
   if (access !== "granted") {
@@ -41,6 +44,9 @@ export default async function SuperAdminDashboard() {
   }
 
   const admins = await db.select().from(users).where(eq(users.role, "ADMIN"));
+
+  const message = searchParams.message as string | undefined;
+  const error = searchParams.error as string | undefined;
 
   return (
     <div className="min-h-screen bg-black text-white p-8">
@@ -59,13 +65,37 @@ export default async function SuperAdminDashboard() {
           </Button>
         </div>
 
-        {/* Create Admin */}
+        {/* Feedback banner */}
+        {message && (
+          <div className="mb-8 p-4 bg-green-900 border border-green-700 rounded text-green-200">
+            {decodeURIComponent(message)}
+          </div>
+        )}
+        {error && (
+          <div className="mb-8 p-4 bg-red-900 border border-red-700 rounded text-red-200">
+            {decodeURIComponent(error)}
+          </div>
+        )}
+
+        {/* Create New Admin */}
         <Card className="bg-gray-900 border-red-800 mb-8 text-white">
           <CardHeader>
-            <CardTitle>Create New Staff Member</CardTitle>
+            <CardTitle>Create New Admin</CardTitle>
           </CardHeader>
           <CardContent>
-            <form action={createAdmin} className="space-y-4 text-white">
+            <form
+              action={async (formData) => {
+                "use server";
+                try {
+                  await createAdmin(formData);
+                } catch (err: any) {
+                  redirect("/super-admin?error=" + encodeURIComponent(err.message || "Failed to create admin"));
+                  return;
+                }
+                redirect("/super-admin?message=" + encodeURIComponent("Admin created successfully"));
+              }}
+              className="space-y-4 text-white"
+            >
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="email">Email</Label>
@@ -81,13 +111,13 @@ export default async function SuperAdminDashboard() {
                 </div>
               </div>
               <Button type="submit" className="bg-green-700 hover:bg-green-600">
-                Create Staff Account
+                Create Admin Account
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        {/* Admin List */}
+        {/* Manage Admins */}
         <Card className="bg-gray-900 border-red-800 text-white">
           <CardHeader>
             <CardTitle>Manage Admins</CardTitle>
@@ -119,11 +149,7 @@ export default async function SuperAdminDashboard() {
                       </TableCell>
                       <TableCell className="flex gap-2">
                         <form action={admin.isLocked ? unlockAdmin : lockAdmin}>
-                          <input
-                            type="hidden"
-                            name="adminId"
-                            value={admin.id}
-                          />
+                          <input type="hidden" name="adminId" value={admin.id} />
                           <Button
                             type="submit"
                             variant={admin.isLocked ? "default" : "destructive"}
@@ -135,11 +161,7 @@ export default async function SuperAdminDashboard() {
                         </form>
 
                         <form action={deleteAdmin}>
-                          <input
-                            type="hidden"
-                            name="adminId"
-                            value={admin.id}
-                          />
+                          <input type="hidden" name="adminId" value={admin.id} />
                           <Button
                             type="submit"
                             variant="destructive"

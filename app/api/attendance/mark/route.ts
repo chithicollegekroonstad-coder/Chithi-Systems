@@ -7,11 +7,11 @@ import { getSession } from "@/lib/auth";
 
 const KROONSTAD_LAT = -27.65;
 const KROONSTAD_LNG = 27.2333;
-const ALLOWED_RADIUS_METERS = 150; // ~150 m radius — adjust as needed
+const ALLOWED_RADIUS_METERS = 150;
 
 export async function POST(req: NextRequest) {
   try {
-    const user = await getSession();
+    const user = (await getSession()) as any;
 
     if (!user || user.role !== "STUDENT") {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Require geolocation
     if (typeof latitude !== "number" || typeof longitude !== "number") {
       return NextResponse.json(
         { error: "Location access is required to mark attendance" },
@@ -35,7 +34,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Check if student is at the Kroonstad campus
     const distance = getDistanceInMeters(
       latitude,
       longitude,
@@ -53,7 +51,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Find class by current QR code
     const classRecord = await db.query.classes.findFirst({
       where: eq(classes.qrCodeValue, qrCodeValue),
     });
@@ -65,14 +62,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Current date
     const now = new Date();
     const date = now.toISOString().split("T")[0];
+    const clockInTime = now.toTimeString().slice(0, 5);
 
-    // Check if already marked today
     const existing = await db.query.attendanceRecords.findFirst({
       where: and(
-        eq(attendanceRecords.studentId, user.id),
+        eq(attendanceRecords.studentId, parseInt(user.id)),
         eq(attendanceRecords.classId, classRecord.id),
         eq(attendanceRecords.date, date),
       ),
@@ -85,12 +81,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Mark attendance
     await db.insert(attendanceRecords).values({
-      studentId: user.id,
+      studentId: parseInt(user.id),
       classId: classRecord.id,
       date,
-      time: now.toTimeString().split(" ")[0].substring(0, 5),
+      clockInTime,
     });
 
     return NextResponse.json({
@@ -109,14 +104,13 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// Haversine formula to calculate distance in meters
 function getDistanceInMeters(
   lat1: number,
   lon1: number,
   lat2: number,
   lon2: number,
 ): number {
-  const R = 6371000; // Earth radius in meters
+  const R = 6371000;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =

@@ -1,9 +1,10 @@
 // app/register/page.tsx
 "use client";
 
+import { Suspense } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { toast } from "sonner";
@@ -16,22 +17,13 @@ import EmergencyContact from "./components/EmergencyContact";
 import Disabilities from "./components/Disabilities";
 import SchoolAndSubmit from "./components/SchoolAndSubmit";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Form } from "@/components/ui/form";
 
-// ── FULL ZOD SCHEMA ──────────────────────────────────────────────────────────
 const MAX_FILE_SIZE = 5 * 1024 * 1024;
 const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 
 const formSchema = z.object({
-  // Step 1 - Personal Details
   idNumber: z.string().length(13, "ID number must be exactly 13 digits"),
   title: z.string().min(1, "Title is required"),
   initials: z.string().optional(),
@@ -46,16 +38,12 @@ const formSchema = z.object({
   homeTel: z.string().optional(),
   workTel: z.string().optional(),
   email: z.string().email("Invalid email address"),
-
-  // Step 3 - Biographical Information
   nationality: z.string().optional(),
   ethnicity: z.string().optional(),
   homeLanguage: z.string().optional(),
   preferredLanguage: z.string().optional(),
   citizenship: z.string().optional(),
   passportNumber: z.string().optional(),
-
-  // Step 4 - Emergency Contact
   emergencyName: z.string().min(1, "Emergency contact name is required"),
   emergencyRelation: z.string().min(1, "Relationship is required"),
   emergencyCell: z.string().min(9, "Emergency cell number is required"),
@@ -69,37 +57,15 @@ const formSchema = z.object({
       "Disability type is required if checked",
     ),
   disabilityNotes: z.string().optional(),
-
-  // Step 6 - School Leaving & Files
   lastSchool: z.string().min(1, "Last school attended is required"),
   highestGrade: z.string().min(1, "Highest grade passed is required"),
   yearPassed: z.string().min(4, "Year passed is required (YYYY)"),
   previousSchool: z.string().optional(),
-
-  // FIXED: boolean + refine instead of literal(true)
   termsAccepted: z.boolean().refine((val) => val === true, {
     message: "You must accept the terms & conditions",
   }),
-
-  idCopy: z
-    .instanceof(FileList)
-    .refine((files) => files.length > 0, "ID copy is required")
-    .refine((files) => {
-      const file = files[0];
-      return (
-        file.size <= MAX_FILE_SIZE && ACCEPTED_FILE_TYPES.includes(file.type)
-      );
-    }, "ID copy must be JPG, PNG or PDF and ≤ 5MB"),
-
-  matricCertificate: z
-    .instanceof(FileList)
-    .refine((files) => files.length > 0, "Matric certificate is required")
-    .refine((files) => {
-      const file = files[0];
-      return (
-        file.size <= MAX_FILE_SIZE && ACCEPTED_FILE_TYPES.includes(file.type)
-      );
-    }, "Matric certificate must be JPG, PNG or PDF and ≤ 5MB"),
+  idCopy: z.any().optional(),
+  matricCertificate: z.any().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -113,9 +79,8 @@ const steps = [
   "School & Submit",
 ];
 
-export default function RegistrationPage() {
+function RegistrationContent() {
   const [step, setStep] = useState(1);
-  const [disabilitiesChecked, setDisabilitiesChecked] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [otp, setOtp] = useState("");
 
@@ -124,22 +89,19 @@ export default function RegistrationPage() {
     defaultValues: {
       termsAccepted: false,
       disability: false,
-      idCopy: undefined as unknown as FileList,
-      matricCertificate: undefined as unknown as FileList,
     },
     mode: "onChange",
   });
 
   const router = useRouter();
 
-  // ── FILE CHANGE HANDLER ──────────────────────────────────────────────────────
   const handleFileChange =
     (fieldName: "idCopy" | "matricCertificate") =>
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = e.target.files;
 
       if (!files || files.length === 0) {
-        form.setValue(fieldName, undefined as any);
+        form.setValue(fieldName, undefined);
         form.clearErrors(fieldName);
         return;
       }
@@ -196,6 +158,13 @@ export default function RegistrationPage() {
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
 
+    const termsValue = form.watch("termsAccepted");
+    if (termsValue !== true) {
+      toast.error("You must accept the terms & conditions");
+      setIsSubmitting(false);
+      return;
+    }
+
     const isValid = await form.trigger();
     if (!isValid) {
       toast.error("Please fix all validation errors");
@@ -217,9 +186,12 @@ export default function RegistrationPage() {
       }
     });
 
-    if (values.idCopy?.[0]) formData.append("idCopy", values.idCopy[0]);
-    if (values.matricCertificate?.[0])
+    if (values.idCopy && values.idCopy[0]) {
+      formData.append("idCopy", values.idCopy[0]);
+    }
+    if (values.matricCertificate && values.matricCertificate[0]) {
       formData.append("matricCertificate", values.matricCertificate[0]);
+    }
 
     try {
       const res = await fetch("/api/register", {
@@ -234,7 +206,7 @@ export default function RegistrationPage() {
       }
 
       toast.success("Registration Submitted!", {
-        description: "Check your email for OTP verification code",
+        description: "Check your email for verification code",
       });
 
       router.push(`/verify-otp?email=${encodeURIComponent(values.email)}`);
@@ -299,8 +271,8 @@ export default function RegistrationPage() {
           <form className="space-y-10">
             {step === 1 && (
               <PersonalDetails
-                form={form}
-                onVerified={() => setStep(2)} // ← FIXED HERE
+                form={form as any}
+                onVerified={() => setStep(2)}
               />
             )}
 
@@ -311,18 +283,16 @@ export default function RegistrationPage() {
                 onVerified={() => setStep(3)}
               />
             )}
-            {step === 3 && <BiographicalDetails form={form} />}
-            {step === 4 && <EmergencyContact form={form} />}
+            {step === 3 && <BiographicalDetails form={form as any} />}
+            {step === 4 && <EmergencyContact form={form as any} />}
             {step === 5 && (
               <Disabilities
-                form={form}
-                checked={disabilitiesChecked}
-                setChecked={setDisabilitiesChecked}
+                form={form as any}
               />
             )}
             {step === 6 && (
               <SchoolAndSubmit
-                form={form}
+                form={form as any}
                 onFileChange={handleFileChange}
                 isSubmitting={isSubmitting}
                 onSubmit={handleFinalSubmit}
@@ -349,5 +319,13 @@ export default function RegistrationPage() {
         </div>
       </RegistrationCard>
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading registration...</div>}>
+      <RegistrationContent />
+    </Suspense>
   );
 }

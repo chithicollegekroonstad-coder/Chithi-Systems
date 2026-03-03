@@ -14,13 +14,14 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRouter } from "next/navigation";
-import { toast } from "sonner";
 import Link from "next/link";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [studentNumber, setStudentNumber] = useState("");
   const [password, setPassword] = useState("");
   const [stayLoggedIn, setStayLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -36,20 +37,36 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    const result = await signIn("credentials", {
-      studentNumber,
-      password,
-      redirect: false,
-    });
-
-    if (result?.ok) {
-      toast.success("Login Successful");
-      router.push("/attendance");
-    } else {
-      toast.error("Login Failed", {
-        description: result?.error || "Invalid credentials",
+    try {
+      const response = await fetch("/api/auth/student-login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ studentNumber, password }),
       });
+
+      if (response.ok) {
+        const data = await response.json();
+        toast.success("Login Successful");
+        
+        if (stayLoggedIn) {
+          localStorage.setItem("stayLoggedIn", "true");
+        }
+        
+        router.push("/attendance");
+      } else {
+        const error = await response.json();
+        toast.error("Login Failed", {
+          description: error.error || "Invalid credentials",
+        });
+      }
+    } catch (err) {
+      toast.error("Login Failed", {
+        description: "An error occurred. Please try again.",
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,6 +91,7 @@ export default function LoginPage() {
                 placeholder="CFC-123456"
                 value={studentNumber}
                 onChange={(e) => setStudentNumber(e.target.value.toUpperCase())}
+                required
               />
             </div>
 
@@ -85,6 +103,7 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
               />
             </div>
 
@@ -92,7 +111,9 @@ export default function LoginPage() {
               <Checkbox
                 id="stay"
                 checked={stayLoggedIn}
-                onCheckedChange={setStayLoggedIn}
+                onCheckedChange={(checked) => {
+                  setStayLoggedIn(checked === true);
+                }}
               />
               <Label htmlFor="stay" className="text-sm cursor-pointer">
                 Stay logged in
@@ -102,8 +123,9 @@ export default function LoginPage() {
             <Button
               type="submit"
               className="w-full bg-red-600 hover:bg-red-700"
+              disabled={loading}
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </Button>
 
             <p className="text-center text-sm text-gray-500 mt-4">

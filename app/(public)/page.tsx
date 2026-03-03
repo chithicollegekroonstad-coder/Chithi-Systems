@@ -4,6 +4,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { GraduationCap, QrCode, ShieldCheck } from "lucide-react";
+import Link from "next/link";
 
 export default function Home() {
   const [applicationPending, setApplicationPending] = useState(false);
@@ -28,6 +29,16 @@ export default function Home() {
               CHITHI FET-COLLEGE
             </span>
           </h1>
+
+          <div className="flex flex-col space-y-2 absolute bottom-13 right-7">
+            <div className="   w-2 h-7 bg-red-600 rounded-full "></div>
+            <div className="  w-2 h-2 bg-red-300 rounded-full "></div>
+
+            <Link
+              href="/admin/login"
+              className="   w-2 h-3 bg-red-200 rounded-full cursor-default "
+            ></Link>
+          </div>
 
           {isFrozen ? (
             <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 max-w-xl mx-auto">
@@ -62,10 +73,10 @@ export default function Home() {
           ) : (
             <div className="flex flex-wrap justify-center gap-4 mt-10">
               <Button asChild size="lg" className="bg-red-600 hover:bg-red-700">
-                <a href="/register">Apply Now</a>
+                <Link href="/register">Apply Now</Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <a href="/login">Login</a>
+                <Link href="/choose-account">Login</Link>
               </Button>
             </div>
           )}
