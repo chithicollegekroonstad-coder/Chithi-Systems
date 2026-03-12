@@ -6,7 +6,7 @@ import { users } from "@/db/schema";
 import { eq } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
-import { signToken } from "@/lib/jwt";
+
 
 // Zod schema for validation
 const loginSchema = z.object({
