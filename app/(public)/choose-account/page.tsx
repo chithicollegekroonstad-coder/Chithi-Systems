@@ -35,7 +35,7 @@ export default function ChooseAccount() {
                     <Button
                         asChild
                         size="sm"
-                        className="h-7 flex   items-center justify-center p-6 bg-red-600 hover:bg-red-700 hover:shadow-lg transition-shadow"
+                        className="h-7 flex   items-center justify-center p-6 bg-red-600 hover:bg-red-700 hover:shadow-lg transition-shadow hover: text-amber-50"
                     >
                         <Link href="/login/staff">
                             
