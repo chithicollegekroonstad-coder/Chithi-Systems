@@ -311,7 +311,7 @@ function RegistrationContent() {
           {step !== 1 && step !== 2 && step < steps.length && (
             <Button
               onClick={handleNext}
-              className="bg-red-600 hover:bg-red-700 ml-auto"
+              className=" sm:w-full  bg-red-600 hover:bg-red-700 ml-auto"
             >
               Next <ChevronRight className="ml-2 h-4 w-4" />
             </Button>

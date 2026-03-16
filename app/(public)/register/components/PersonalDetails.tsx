@@ -163,26 +163,7 @@ export default function PersonalDetails({
             </FormItem>
           )}
         />
-
-        {/* Initials – auto-filled from fullNames + surname */}
-        <FormField
-          control={form.control}
-          name="initials"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Initials (auto-filled)</FormLabel>
-              <FormControl>
-                <Input
-                  {...field}
-                  placeholder="Auto-filled from names"
-                  disabled
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
+       
         {/* Surname */}
         <FormField
           control={form.control}
@@ -212,6 +193,26 @@ export default function PersonalDetails({
             </FormItem>
           )}
         />
+
+        {/* Initials – auto-filled from fullNames + surname */}
+        <FormField
+          control={form.control}
+          name="initials"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Initials (auto-filled)</FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  placeholder="Auto-filled from names"
+                  disabled
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
 
         {/* Maiden Surname */}
         <FormField
@@ -377,7 +378,7 @@ export default function PersonalDetails({
           type="button"
           onClick={handleNextAndSendOtp}
           disabled={isSendingOtp}
-          className="bg-red-600 hover:bg-red-700 min-w-[160px]"
+          className="bg-red-600 hover:bg-red-700 min-w-40 sm:w-full"
         >
           {isSendingOtp ? (
             <>
