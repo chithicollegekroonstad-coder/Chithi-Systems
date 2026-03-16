@@ -36,29 +36,25 @@ export default function PersonalDetails({
 }: PersonalDetailsProps) {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
 
-  // Auto-fill initials: first letter of each word in fullNames + first letter of surname
   const fullNames = form.watch("fullNames");
   const surname = form.watch("surname");
 
   useEffect(() => {
     const currentInitials = form.getValues("initials");
-    // Only auto-fill if initials is empty or looks like auto-generated (uppercase letters only)
     if (currentInitials && !/^[A-Z]+$/.test(currentInitials)) {
-      return; // user typed custom value — don't overwrite
+      return;
     }
 
     let initials = "";
 
-    // From fullNames
     if (fullNames) {
       const words = fullNames.trim().split(/\s+/);
       initials += words
         .map((word) => word.charAt(0).toUpperCase())
         .join("")
-        .slice(0, 3); // max 3 from full names
+        .slice(0, 3);
     }
 
-    // Add first letter of surname
     if (surname) {
       initials += surname.charAt(0).toUpperCase();
     }
@@ -72,7 +68,6 @@ export default function PersonalDetails({
     setIsSendingOtp(true);
 
     try {
-      // Validate personal details fields
       const isValid = await form.trigger([
         "idNumber",
         "title",
@@ -179,7 +174,7 @@ export default function PersonalDetails({
           )}
         />
 
-        {/* Full Names – triggers initials auto-fill */}
+        {/* Full Names */}
         <FormField
           control={form.control}
           name="fullNames"
@@ -194,7 +189,7 @@ export default function PersonalDetails({
           )}
         />
 
-        {/* Initials – auto-filled from fullNames + surname */}
+        {/* Initials */}
         <FormField
           control={form.control}
           name="initials"
@@ -213,7 +208,6 @@ export default function PersonalDetails({
           )}
         />
 
-
         {/* Maiden Surname */}
         <FormField
           control={form.control}
@@ -229,7 +223,7 @@ export default function PersonalDetails({
           )}
         />
 
-        {/* Date of Birth – text input with dd/mm/yyyy format */}
+        {/* Date of Birth */}
         <FormField
           control={form.control}
           name="dob"
@@ -245,7 +239,7 @@ export default function PersonalDetails({
                   pattern="(0[1-9]|[12][0-9]|3[01])/(0[1-9]|1[012])/(19|20)\d{2}"
                   maxLength={10}
                   onChange={(e) => {
-                    let value = e.target.value.replace(/\D/g, ""); // only digits
+                    let value = e.target.value.replace(/\D/g, "");
                     if (value.length === 2 || value.length === 5) {
                       value += "/";
                     }
@@ -373,12 +367,13 @@ export default function PersonalDetails({
         />
       </div>
 
-      <div className="flex justify-end mt-8">
+      {/* FIXED: Full-width responsive button */}
+      <div className="w-full mt-8">
         <Button
           type="button"
           onClick={handleNextAndSendOtp}
           disabled={isSendingOtp}
-          className="bg-red-600 hover:bg-red-700 min-w-40 "
+          className="w-full bg-red-600 hover:bg-red-700"
         >
           {isSendingOtp ? (
             <>
