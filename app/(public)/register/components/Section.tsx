@@ -8,7 +8,7 @@ export function Section({
 }) {
   return (
     <div>
-      <h2 className=" text-[18px] lg:text-xl font-semibold text-red-700 mb-6 border-b border-red-200 pb-2">
+      <h2 className=" text-[14px] lg:text-xl font-semibold text-red-700 mb-6 border-b border-red-200 pb-2">
         {title}
       </h2>
       {children}
