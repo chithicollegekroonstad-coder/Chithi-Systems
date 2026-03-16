@@ -7,7 +7,7 @@ export function ProgressBar({
   currentStep: number;
 }) {
   return (
-    <div className="flex flex-wrap justify-between mb-10 text-sm gap-2">
+    <div className="hidden lg:flex flex-wrap justify-between mb-10 text-sm gap-2">
       {steps.map((label, i) => (
         <div
           key={i}
