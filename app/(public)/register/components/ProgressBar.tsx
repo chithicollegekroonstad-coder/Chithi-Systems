@@ -11,7 +11,7 @@ export function ProgressBar({
       {steps.map((label, i) => (
         <div
           key={i}
-          className={`flex-1 min-w-[80px] text-center font-medium ${
+          className={`flex-1 min-w-20 text-center font-medium ${
             currentStep >= i + 1 ? "text-red-600 underline" : "text-gray-400"
           }`}
         >

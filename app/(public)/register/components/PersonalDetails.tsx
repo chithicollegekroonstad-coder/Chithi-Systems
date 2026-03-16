@@ -378,7 +378,7 @@ export default function PersonalDetails({
           type="button"
           onClick={handleNextAndSendOtp}
           disabled={isSendingOtp}
-          className="bg-red-600 hover:bg-red-700 min-w-40 sm:w-full"
+          className="bg-red-600 hover:bg-red-700 min-w-40 "
         >
           {isSendingOtp ? (
             <>

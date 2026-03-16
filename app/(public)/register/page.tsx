@@ -26,9 +26,9 @@ const ACCEPTED_FILE_TYPES = ["image/jpeg", "image/png", "application/pdf"];
 const formSchema = z.object({
   idNumber: z.string().length(13, "ID number must be exactly 13 digits"),
   title: z.string().min(1, "Title is required"),
-  initials: z.string().optional(),
   surname: z.string().min(1, "Surname is required"),
   fullNames: z.string().min(1, "Full names are required"),
+  initials: z.string().optional(),
   maidenSurname: z.string().optional(),
   dob: z.string().min(1, "Date of birth is required"),
   gender: z.string().min(1, "Gender is required"),
@@ -301,9 +301,10 @@ function RegistrationContent() {
           </form>
         </Form>
 
-        <div className="flex justify-between mt-10">
+        {/* Navigation buttons - full width on mobile, flex on larger screens */}
+        <div className="flex flex-col sm:flex-row gap-3 justify-between mt-10">
           {step > 1 && (
-            <Button variant="outline" onClick={handleBack}>
+            <Button variant="outline" onClick={handleBack} className="w-full sm:w-auto">
               <ChevronLeft className="mr-2 h-4 w-4" /> Back
             </Button>
           )}
@@ -311,7 +312,7 @@ function RegistrationContent() {
           {step !== 1 && step !== 2 && step < steps.length && (
             <Button
               onClick={handleNext}
-              className=" sm:w-full  bg-red-600 hover:bg-red-700 ml-auto"
+              className="w-full sm:w-auto bg-red-600 hover:bg-red-700 sm:ml-auto"
             >
               Next <ChevronRight className="ml-2 h-4 w-4" />
             </Button>
