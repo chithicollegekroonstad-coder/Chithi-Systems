@@ -5,8 +5,6 @@ import { db } from "@/db";
 import { otpCodes } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-
 export async function POST(req: NextRequest) {
   try {
     const { email } = await req.json();
@@ -14,6 +12,15 @@ export async function POST(req: NextRequest) {
     if (!email) {
       return NextResponse.json({ error: "Email is required" }, { status: 400 });
     }
+
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      return NextResponse.json(
+        { error: "Email service is not configured (missing RESEND_API_KEY)." },
+        { status: 500 },
+      );
+    }
+    const resend = new Resend(resendApiKey);
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000);

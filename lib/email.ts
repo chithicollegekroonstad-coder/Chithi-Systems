@@ -1,10 +1,17 @@
 // lib/email.ts
 import { Resend } from "resend";
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient(): Resend {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    throw new Error("Missing RESEND_API_KEY");
+  }
+  return new Resend(resendApiKey);
+}
 
 export async function sendOTPEmail(email: string, code: string) {
   try {
+    const resend = getResendClient();
     await resend.emails.send({
       from: "Chithi FET College <noreply@chithifetcollege.co.za>",
       to: email,
@@ -42,6 +49,7 @@ export async function sendApprovalEmail(
   name: string,
 ) {
   try {
+    const resend = getResendClient();
     const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
     const setPasswordUrl = `${baseUrl}/set-password?email=${encodeURIComponent(email)}`;
     const studentLoginUrl = `${baseUrl}/login/student`;
@@ -89,6 +97,7 @@ export async function sendRejectionEmail(
   reason?: string,
 ) {
   try {
+    const resend = getResendClient();
     await resend.emails.send({
       from: "Chithi FET College <noreply@chithifetcollege.co.za>",
       to: email,
