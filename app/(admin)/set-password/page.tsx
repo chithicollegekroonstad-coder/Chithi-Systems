@@ -2,7 +2,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,10 +22,9 @@ type Step = "password" | "face" | "fingerprint";
 
 export default function SetPasswordAndBiometricsPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [step, setStep] = useState<Step>("password");
-  const [email, setEmail] = useState(searchParams.get("email") || "");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [accountRole, setAccountRole] = useState<string>("STUDENT");
@@ -42,11 +41,13 @@ export default function SetPasswordAndBiometricsPage() {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const emailFromUrl = searchParams.get("email");
-    if (emailFromUrl) {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const emailFromUrl = params.get("email");
+    if (emailFromUrl && !email) {
       setEmail(emailFromUrl);
     }
-  }, [searchParams]);
+  }, [email]);
 
   useEffect(() => {
     const loadFaceModels = async () => {

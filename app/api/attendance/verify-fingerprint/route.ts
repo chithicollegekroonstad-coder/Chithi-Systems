@@ -44,10 +44,10 @@ export async function POST(req: NextRequest) {
       expectedRPID: new URL(
         process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
       ).hostname,
-      authenticator: {
-        credentialID: storedCred.credentialID,
-        credentialPublicKey: Buffer.from(storedCred.publicKey, "base64"),
-        counter: storedCred.counter || 0,
+      credential: {
+        id: String(storedCred.credentialID),
+        publicKey: Buffer.from(String(storedCred.publicKey), "base64"),
+        counter: Number(storedCred.counter || 0),
       },
     });
 
