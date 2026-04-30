@@ -112,8 +112,8 @@ export default function Home() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2">
-              <div className="group rounded-2xl border border-red-100/90 bg-white/70 p-8 shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
+              <div className="group rounded-2xl border border-red-100/90 bg-white/70 p-8 text-center shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md">
+                <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
                   <QrCode className="h-6 w-6" aria-hidden />
                 </div>
                 <h3 className="text-lg font-semibold text-neutral-900">
@@ -123,8 +123,8 @@ export default function Home() {
                   Scan in class to mark attendance quickly and securely.
                 </p>
               </div>
-              <div className="group rounded-2xl border border-red-100/90 bg-white/70 p-8 shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md">
-                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
+              <div className="group rounded-2xl border border-red-100/90 bg-white/70 p-8 text-center shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md">
+                <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
                   <ShieldCheck className="h-6 w-6" aria-hidden />
                 </div>
                 <h3 className="text-lg font-semibold text-neutral-900">
