@@ -34,6 +34,8 @@ export default function SetPasswordAndBiometricsPage() {
 
   const [loading, setLoading] = useState(false);
   const [modelsLoaded, setModelsLoaded] = useState(false);
+  const [modelsLoadError, setModelsLoadError] = useState<string | null>(null);
+  const [isLoadingModels, setIsLoadingModels] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [faceCaptured, setFaceCaptured] = useState(false);
   const [fingerprintSetup, setFingerprintSetup] = useState(false);
@@ -49,23 +51,32 @@ export default function SetPasswordAndBiometricsPage() {
     }
   }, [email]);
 
-  useEffect(() => {
-    const loadFaceModels = async () => {
-      try {
-        await Promise.all([
-          faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
-          faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
-          faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
-        ]);
-        setModelsLoaded(true);
-      } catch (error) {
-        console.error("Failed to load face models:", error);
-        toast.error("Failed to load face recognition models");
-      }
-    };
+  const loadFaceModels = async () => {
+    if (modelsLoaded || isLoadingModels) return;
+    setIsLoadingModels(true);
+    setModelsLoadError(null);
+    try {
+      await Promise.all([
+        faceapi.nets.tinyFaceDetector.loadFromUri("/models"),
+        faceapi.nets.faceRecognitionNet.loadFromUri("/models"),
+        faceapi.nets.faceLandmark68Net.loadFromUri("/models"),
+      ]);
+      setModelsLoaded(true);
+    } catch (error) {
+      console.error("Failed to load face models:", error);
+      setModelsLoadError(
+        "Face recognition models could not load on this device/browser.",
+      );
+    } finally {
+      setIsLoadingModels(false);
+    }
+  };
 
-    void loadFaceModels();
-  }, []);
+  useEffect(() => {
+    if (step === "face") {
+      void loadFaceModels();
+    }
+  }, [step]);
 
   useEffect(() => {
     return () => {
@@ -92,6 +103,15 @@ export default function SetPasswordAndBiometricsPage() {
     cameraStream?.getTracks().forEach((track) => track.stop());
     setCameraStream(null);
     setCameraOpen(false);
+  };
+
+  const finishActivation = () => {
+    const destination =
+      accountRole === "STAFF" || accountRole === "ADMIN"
+        ? "/login/staff"
+        : "/login/student";
+    router.push(destination);
+    router.refresh();
   };
 
   const toBase64Url = (input: ArrayBuffer): string => {
@@ -309,13 +329,7 @@ export default function SetPasswordAndBiometricsPage() {
       toast.success("Fingerprint setup complete!", {
         description: "Your account is now fully activated.",
       });
-
-      const destination =
-        accountRole === "STAFF" || accountRole === "ADMIN"
-          ? "/login/staff"
-          : "/login/student";
-      router.push(destination);
-      router.refresh();
+      finishActivation();
     } catch (err: any) {
       toast.error("Fingerprint setup failed", {
         description: err.message || "Please try again",
@@ -438,7 +452,11 @@ export default function SetPasswordAndBiometricsPage() {
                 variant="outline"
                 className="w-full"
               >
-                {!modelsLoaded ? "Loading face models..." : "Open Camera"}
+                {isLoadingModels
+                  ? "Loading face models..."
+                  : modelsLoaded
+                    ? "Open Camera"
+                    : "Face models unavailable"}
               </Button>
             ) : (
               <div className="space-y-3">
@@ -469,6 +487,23 @@ export default function SetPasswordAndBiometricsPage() {
               ) : (
                 "Capture My Face"
               )}
+            </Button>
+
+            {modelsLoadError && (
+              <p className="text-xs text-amber-700">{modelsLoadError}</p>
+            )}
+
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={() => {
+                stopCamera();
+                setStep("fingerprint");
+              }}
+              disabled={loading}
+            >
+              Skip face setup for now
             </Button>
 
             <p className="text-xs text-neutral-500">
@@ -507,6 +542,16 @@ export default function SetPasswordAndBiometricsPage() {
               ) : (
                 "Register Fingerprint"
               )}
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              className="w-full"
+              onClick={finishActivation}
+              disabled={loading}
+            >
+              Skip fingerprint for now and finish
             </Button>
 
             <p className="text-xs text-neutral-500">

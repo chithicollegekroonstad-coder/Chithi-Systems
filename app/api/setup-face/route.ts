@@ -35,8 +35,14 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Setup face error:", error);
+    const message =
+      error instanceof Error &&
+      error.message.includes("face_embedding") &&
+      error.message.includes("does not exist")
+        ? "Face biometric storage is not ready yet. Please ask admin to run the biometric database migration."
+        : "Failed to save face data";
     return NextResponse.json(
-      { error: "Failed to save face data" },
+      { error: message },
       { status: 500 },
     );
   }

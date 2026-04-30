@@ -69,8 +69,14 @@ export async function POST(req: NextRequest) {
     });
   } catch (error) {
     console.error("Setup fingerprint error:", error);
+    const message =
+      error instanceof Error &&
+      error.message.includes("webauthn_credential") &&
+      error.message.includes("does not exist")
+        ? "Passkey storage is not ready yet. Please ask admin to run the biometric database migration."
+        : "Failed to register fingerprint";
     return NextResponse.json(
-      { error: "Failed to register fingerprint" },
+      { error: message },
       { status: 500 },
     );
   }
