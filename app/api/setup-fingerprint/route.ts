@@ -46,12 +46,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (!verification.registrationInfo) {
+      return NextResponse.json(
+        { error: "No registration info returned from passkey verification" },
+        { status: 400 },
+      );
+    }
+
     await setWebauthnCredentialByUserId(user.id, {
-      credentialID: verification.registrationInfo?.credential.id,
+      credentialID: Buffer.from(
+        verification.registrationInfo.credentialID,
+      ).toString("base64url"),
       publicKey: Buffer.from(
-        verification.registrationInfo?.credential.publicKey,
+        verification.registrationInfo.credentialPublicKey,
       ).toString("base64"),
-      counter: verification.registrationInfo?.credential.counter,
+      counter: verification.registrationInfo.counter,
     });
 
     return NextResponse.json({

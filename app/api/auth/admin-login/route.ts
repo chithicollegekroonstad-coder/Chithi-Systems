@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 },
@@ -45,6 +45,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 },
+      );
+    }
+
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        {
+          error:
+            "Your admin account is created, but you must complete setup first at /set-password.",
+        },
+        { status: 403 },
       );
     }
 

@@ -7,6 +7,12 @@ import {
 import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { getSession } from "@/lib/auth";
 
+function base64UrlToUint8Array(value: string): Uint8Array {
+  const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padding = "=".repeat((4 - (base64.length % 4)) % 4);
+  return new Uint8Array(Buffer.from(base64 + padding, "base64"));
+}
+
 export async function POST(req: NextRequest) {
   try {
     const session = await getSession();
@@ -44,9 +50,9 @@ export async function POST(req: NextRequest) {
       expectedRPID: new URL(
         process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
       ).hostname,
-      credential: {
-        id: String(storedCred.credentialID),
-        publicKey: Buffer.from(String(storedCred.publicKey), "base64"),
+      authenticator: {
+        credentialID: base64UrlToUint8Array(String(storedCred.credentialID)),
+        credentialPublicKey: Buffer.from(String(storedCred.publicKey), "base64"),
         counter: Number(storedCred.counter || 0),
       },
     });

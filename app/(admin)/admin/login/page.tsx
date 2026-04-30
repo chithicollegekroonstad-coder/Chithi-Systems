@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -114,6 +115,17 @@ export default function AdminLoginPage() {
                 "Login to Dashboard"
               )}
             </Button>
+
+            <p className="text-center text-sm text-neutral-500">
+              First-time admin account?{" "}
+              <Link
+                href="/set-password"
+                className="font-medium text-red-600 underline-offset-4 hover:underline"
+              >
+                Set your password
+              </Link>
+              .
+            </p>
           </form>
         </CardContent>
       </Card>
