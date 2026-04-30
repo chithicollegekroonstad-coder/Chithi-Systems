@@ -38,14 +38,18 @@ export async function sendOTPEmail(email: string, code: string) {
 export async function sendApprovalEmail(
   email: string,
   studentNumber: string,
-  password: string,
+  _password: string,
   name: string,
 ) {
   try {
+    const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000";
+    const setPasswordUrl = `${baseUrl}/set-password?email=${encodeURIComponent(email)}`;
+    const studentLoginUrl = `${baseUrl}/login/student`;
+
     await resend.emails.send({
       from: "Chithi FET College <noreply@chithifetcollege.co.za>",
       to: email,
-      subject: "Application Approved - Your Student Credentials",
+      subject: "Application Approved - Complete Account Setup",
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #dc2626;">Chithi FET College</h2>
@@ -54,14 +58,14 @@ export async function sendApprovalEmail(
           <p>Congratulations! Your application has been approved.</p>
           
           <div style="background: #f3f4f6; padding: 20px; border-radius: 8px; margin: 20px 0;">
-            <h4 style="margin-top: 0;">Your Login Credentials:</h4>
+            <h4 style="margin-top: 0;">Your Account Details:</h4>
             <p><strong>Student Number:</strong> ${studentNumber}</p>
-            <p><strong>Password:</strong> ${password}</p>
           </div>
           
-          <p>You can now login at: <a href="${process.env.NEXTAUTH_URL}/login">Login Page</a></p>
+          <p><strong>Next step (required):</strong> Set your password and biometrics first.</p>
+          <p><a href="${setPasswordUrl}" style="color: #dc2626; font-weight: bold;">Complete account setup</a></p>
           
-          <p><strong>Important:</strong> Please change your password after your first login.</p>
+          <p>After setup is complete, you can log in here: <a href="${studentLoginUrl}">Student Login</a></p>
           
           <hr style="border: 0; border-top: 1px solid #e5e7eb; margin: 20px 0;">
           <p style="color: #6b7280; font-size: 12px;">

@@ -76,30 +76,15 @@ export default function StaffManagement({}: StaffManagementProps) {
       try {
         await createStaff(formData);
 
-        // Optimistic add (use real data structure)
-        const tempId = `temp-${Date.now()}`;
-        const newStaffMember: Staff = {
-          id: tempId,
-          email,
-          firstName,
-          lastName,
-          role: "STAFF",
-          isLocked: false,
-        };
-
-        setStaff((prev) => [...prev, newStaffMember]);
-
         toast.success("Staff member created successfully");
 
         setEmail("");
         setFirstName("");
         setLastName("");
 
-        // Refresh from DB after short delay (to get real ID)
-        setTimeout(async () => {
-          const fresh = await getStaffMembers();
-          setStaff(fresh);
-        }, 1500);
+        // Always refresh from DB so UI stays in sync with real records.
+        const fresh = await getStaffMembers();
+        setStaff(fresh);
       } catch (err: any) {
         toast.error("Failed to create staff", {
           description: err.message || "Please try again",

@@ -1,6 +1,7 @@
 // app/super-admin/page.tsx
 import { db } from "@/db";
 import { users } from "@/db/schema";
+import { usersCoreColumns } from "@/db/user-columns";
 import { eq } from "drizzle-orm";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -16,13 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Lock,
-  Unlock,
-  Trash2,
-  LayoutDashboard,
-  LogOut,
-} from "lucide-react";
+import { LayoutDashboard, LogOut } from "lucide-react";
 import {
   lockAdmin,
   unlockAdmin,
@@ -30,6 +25,8 @@ import {
   createAdmin,
   logoutSuper,
 } from "@/app/actions/super-admin";
+
+export const dynamic = "force-dynamic";
 
 export default async function SuperAdminDashboard({
   searchParams,
@@ -43,88 +40,100 @@ export default async function SuperAdminDashboard({
     redirect("/super-login");
   }
 
-  const admins = await db.select().from(users).where(eq(users.role, "ADMIN"));
+  const admins = await db
+    .select(usersCoreColumns)
+    .from(users)
+    .where(eq(users.role, "ADMIN"));
 
   const message = searchParams.message as string | undefined;
   const error = searchParams.error as string | undefined;
 
   return (
-    <div className="min-h-screen bg-black text-white p-8">
-      <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold text-white mb-8">
-          Super Admin Control Center
-        </h1>
-
-        {/* Quick link */}
-        <div className="mb-8">
-          <Button asChild className="bg-blue-700 hover:bg-blue-600">
-            <a href="/admin/dashboard">
-              <LayoutDashboard className="mr-2 h-4 w-4" />
-              Go to Regular Admin Dashboard
-            </a>
-          </Button>
+    <div className="min-h-screen px-4 py-8 sm:p-8">
+      <div className="mx-auto max-w-7xl space-y-8">
+        <div className="flex flex-col gap-6 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 className="text-balance text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+              Super admin{" "}
+              <span className="bg-gradient-to-r from-red-600 to-red-500 bg-clip-text text-transparent">
+                control center
+              </span>
+            </h1>
+            <p className="mt-2 text-neutral-600">
+              Create and manage college administrator accounts.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              asChild
+              className="rounded-xl bg-red-600 font-semibold shadow-md shadow-red-600/20 hover:bg-red-700"
+            >
+              <a href="/admin/dashboard">
+                <LayoutDashboard className="mr-2 h-4 w-4" />
+                Admin dashboard
+              </a>
+            </Button>
+            <form action={logoutSuper}>
+              <Button
+                type="submit"
+                variant="outline"
+                className="rounded-xl border-red-200 bg-white/80 text-neutral-800 hover:bg-red-50"
+              >
+                <LogOut className="mr-2 h-4 w-4" />
+                Sign out
+              </Button>
+            </form>
+          </div>
         </div>
 
-        {/* Feedback banner */}
         {message && (
-          <div className="mb-8 p-4 bg-green-900 border border-green-700 rounded text-green-200">
+          <div className="rounded-2xl border border-emerald-200/90 bg-emerald-50/90 px-4 py-3 text-sm text-emerald-900 ring-1 ring-emerald-100/80">
             {decodeURIComponent(message)}
           </div>
         )}
         {error && (
-          <div className="mb-8 p-4 bg-red-900 border border-red-700 rounded text-red-200">
+          <div className="rounded-2xl border border-red-200/90 bg-red-50/90 px-4 py-3 text-sm text-red-900 ring-1 ring-red-100/80">
             {decodeURIComponent(error)}
           </div>
         )}
 
-        {/* Create New Admin */}
-        <Card className="bg-gray-900 border-red-800 mb-8 text-white">
+        <Card className="rounded-2xl border border-red-100/90 bg-white/85 shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>Create New Admin</CardTitle>
+            <CardTitle className="text-neutral-900">Create new admin</CardTitle>
           </CardHeader>
           <CardContent>
-            <form
-              action={async (formData) => {
-                "use server";
-                try {
-                  await createAdmin(formData);
-                } catch (err: any) {
-                  redirect("/super-admin?error=" + encodeURIComponent(err.message || "Failed to create admin"));
-                  return;
-                }
-                redirect("/super-admin?message=" + encodeURIComponent("Admin created successfully"));
-              }}
-              className="space-y-4 text-white"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
+            <form action={createAdmin} className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
                   <Label htmlFor="email">Email</Label>
-                  <Input name="email" type="email" required />
+                  <Input name="email" type="email" required id="email" />
                 </div>
-                <div>
-                  <Label htmlFor="firstName">First Name</Label>
-                  <Input name="firstName" required />
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input name="firstName" required id="firstName" />
                 </div>
-                <div>
-                  <Label htmlFor="lastName">Last Name</Label>
-                  <Input name="lastName" required />
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input name="lastName" required id="lastName" />
                 </div>
               </div>
-              <Button type="submit" className="bg-green-700 hover:bg-green-600">
-                Create Admin Account
+              <Button
+                type="submit"
+                className="rounded-xl bg-red-600 font-semibold shadow-md shadow-red-600/20 hover:bg-red-700"
+              >
+                Create admin account
               </Button>
             </form>
           </CardContent>
         </Card>
 
-        {/* Manage Admins */}
-        <Card className="bg-gray-900 border-red-800 text-white">
+        <Card className="rounded-2xl border border-red-100/90 bg-white/85 shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 backdrop-blur-sm">
           <CardHeader>
-            <CardTitle>Manage Admins</CardTitle>
+            <CardTitle className="text-neutral-900">Manage admins</CardTitle>
           </CardHeader>
           <CardContent>
             {admins.length === 0 ? (
-              <p className="text-gray-400 text-center py-8">No admins yet.</p>
+              <p className="py-8 text-center text-neutral-500">No admins yet.</p>
             ) : (
               <Table>
                 <TableHeader>

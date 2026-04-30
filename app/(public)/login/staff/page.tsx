@@ -64,16 +64,18 @@ export default function StaffLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-red-50 p-4">
-      <Card className="w-full max-w-md shadow-xl border-red-100">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <Users className="h-12 w-12 text-red-600" />
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 sm:px-6">
+      <Card className="w-full max-w-md rounded-2xl border border-red-100/90 bg-white/85 shadow-lg shadow-red-950/5 ring-1 ring-red-50/80 backdrop-blur-sm">
+        <CardHeader className="space-y-3 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
+            <Users className="h-7 w-7" aria-hidden />
           </div>
-          <CardTitle className="text-2xl font-bold text-red-700">
-            Staff Login
+          <CardTitle className="text-2xl font-bold tracking-tight text-neutral-900">
+            Staff login
           </CardTitle>
-          <CardDescription>Access your staff register</CardDescription>
+          <CardDescription className="text-base text-neutral-600">
+            Access your staff portal
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -118,7 +120,7 @@ export default function StaffLoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700"
+              className="w-full rounded-xl bg-red-600 font-semibold shadow-md shadow-red-600/20 hover:bg-red-700"
               disabled={isLoading}
             >
               {isLoading ? (
@@ -131,13 +133,13 @@ export default function StaffLoginPage() {
               )}
             </Button>
 
-            <p className="text-center text-sm text-gray-500 mt-4">
-              If you don't have an account, please{" "}
+            <p className="mt-4 text-center text-sm text-neutral-500">
+              If you don&apos;t have an account, please{" "}
               <Link
                 href="/set-password"
-                className="text-red-600 hover:underline"
+                className="font-medium text-red-600 underline-offset-4 hover:underline"
               >
-                register
+                activate your account
               </Link>
             </p>
           </form>

@@ -18,7 +18,10 @@ export async function createStaff(formData: FormData) {
     throw new Error("Email, first name, and last name are required");
   }
 
-  const existing = await db.select().from(users).where(eq(users.email, email));
+  const existing = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email));
   if (existing.length > 0) {
     throw new Error("Email already in use");
   }
@@ -34,7 +37,7 @@ export async function createStaff(formData: FormData) {
 
   revalidatePath("/super-admin");
   revalidatePath("/admin/dashboard");
-  redirect("/admin/dashboard?message=" + encodeURIComponent("Staff created successfully"));
+  return { success: true };
 }
 
 // 2. Lock admin (super-admin only)
@@ -123,7 +126,7 @@ export async function deleteStaff(formData: FormData) {
 
   revalidatePath("/admin/dashboard");
   revalidatePath("/super-admin");
-  redirect("/admin/dashboard?message=" + encodeURIComponent("Staff deleted successfully"));
+  return { success: true };
 }
 
 // 6. Logout super admin

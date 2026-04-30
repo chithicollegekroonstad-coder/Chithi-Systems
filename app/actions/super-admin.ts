@@ -10,32 +10,53 @@ import { redirect } from "next/navigation";
 
 // Create new ADMIN account (super-admin only)
 export async function createAdmin(formData: FormData) {
-  const email = formData.get("email")?.toString().trim();
+  const emailRaw = formData.get("email")?.toString().trim();
   const firstName = formData.get("firstName")?.toString().trim();
   const lastName = formData.get("lastName")?.toString().trim();
+  const email = emailRaw?.toLowerCase();
 
   if (!email || !firstName || !lastName) {
-    throw new Error("Email, first name, and last name are required");
+    redirect(
+      "/super-admin?error=" +
+        encodeURIComponent(
+          "Email, first name, and last name are required",
+        ),
+    );
   }
 
-  const existing = await db.select().from(users).where(eq(users.email, email));
+  const existing = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email));
   if (existing.length > 0) {
-    throw new Error("Email already in use");
+    redirect(
+      "/super-admin?error=" +
+        encodeURIComponent("Email already in use"),
+    );
   }
 
-  await db.insert(users).values({
-    email,
-    firstName,
-    lastName,
-    role: "ADMIN",  // ← key difference from createStaff
-    isLocked: false,
-    // No passwordHash — they set it later via reset/set-password flow
-  });
+  try {
+    await db.insert(users).values({
+      email,
+      firstName,
+      lastName,
+      role: "ADMIN",
+      isLocked: false,
+    });
+  } catch (e: unknown) {
+    const msg =
+      e instanceof Error ? e.message : "Failed to create admin account";
+    console.error("createAdmin insert error:", e);
+    redirect("/super-admin?error=" + encodeURIComponent(msg));
+  }
 
   revalidatePath("/super-admin");
   revalidatePath("/admin/dashboard");
 
-  redirect("/super-admin?message=" + encodeURIComponent("Admin created successfully"));
+  redirect(
+    "/super-admin?message=" +
+      encodeURIComponent("Admin created successfully"),
+  );
 }
 
 // Lock admin (super-admin only)

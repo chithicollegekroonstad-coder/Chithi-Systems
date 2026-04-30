@@ -33,10 +33,20 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    if (!user || !user.passwordHash) {
+    if (!user) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 },
+      );
+    }
+
+    if (!user.passwordHash) {
+      return NextResponse.json(
+        {
+          error:
+            "Your account is approved, but you must complete password setup first at /set-password.",
+        },
+        { status: 403 },
       );
     }
 

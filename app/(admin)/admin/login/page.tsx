@@ -58,16 +58,18 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-red-50 p-4">
-      <Card className="w-full max-w-md shadow-xl border-red-100">
-        <CardHeader className="text-center">
-          <div className="flex justify-center mb-4">
-            <ShieldCheck className="h-12 w-12 text-red-600" />
+    <div className="flex min-h-screen flex-col items-center justify-center px-4 py-16 sm:px-6">
+      <Card className="w-full max-w-md rounded-2xl border border-red-100/90 bg-white/85 shadow-lg shadow-red-950/5 ring-1 ring-red-50/80 backdrop-blur-sm">
+        <CardHeader className="space-y-3 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
+            <ShieldCheck className="h-7 w-7" aria-hidden />
           </div>
-          <CardTitle className="text-2xl font-bold text-red-700">
-            Admin Login
+          <CardTitle className="text-2xl font-bold tracking-tight text-neutral-900">
+            Admin login
           </CardTitle>
-          <CardDescription>Access the admin dashboard</CardDescription>
+          <CardDescription className="text-base text-neutral-600">
+            Access the admin dashboard
+          </CardDescription>
         </CardHeader>
 
         <CardContent>
@@ -100,7 +102,7 @@ export default function AdminLoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700"
+              className="w-full rounded-xl bg-red-600 font-semibold shadow-md shadow-red-600/20 hover:bg-red-700"
               disabled={isLoading}
             >
               {isLoading ? (
