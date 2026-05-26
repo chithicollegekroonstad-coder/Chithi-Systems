@@ -7,19 +7,21 @@ import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, faceDescriptor } = await req.json();
+    const { email, studentNumber, faceDescriptor } = await req.json();
 
-    if (!email || !faceDescriptor || !Array.isArray(faceDescriptor)) {
+    if ((!email && !studentNumber) || !faceDescriptor || !Array.isArray(faceDescriptor)) {
       return NextResponse.json(
-        { error: "Email and valid face descriptor (array) are required" },
+        { error: "Email or student number, and valid face descriptor (array) are required" },
         { status: 400 },
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const whereCondition = email
+      ? eq(users.email, email.trim().toLowerCase())
+      : eq(users.studentNumber, studentNumber.trim().toUpperCase());
 
     const user = await db.query.users.findFirst({
-      where: eq(users.email, normalizedEmail),
+      where: whereCondition,
       columns: { id: true },
     });
 

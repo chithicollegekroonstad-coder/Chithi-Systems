@@ -128,22 +128,24 @@ export default function LoginPage() {
               {loading ? "Logging in..." : "Login"}
             </Button>
 
-            <p className="mt-4 text-center text-sm text-neutral-500">
-              If your account is frozen, please{" "}
+            <p className="mt-4 text-center text-sm text-neutral-600">
+              First time logging in?{" "}
+              <Link
+                href={`/set-password${studentNumber ? `?studentNumber=${encodeURIComponent(studentNumber)}` : ""}`}
+                className="font-semibold text-red-600 underline-offset-4 hover:underline"
+              >
+                Set up your password
+              </Link>
+            </p>
+
+            <p className="mt-2 text-center text-sm text-neutral-500">
+              Account frozen?{" "}
               <Link
                 href="/"
                 className="font-medium text-red-600 underline-offset-4 hover:underline"
               >
-                re-register
-              </Link>{" "}
-              or{" "}
-              <Link
-                href="/set-password"
-                className="font-medium text-red-600 underline-offset-4 hover:underline"
-              >
-                set your password
+                Re-register
               </Link>
-              .
             </p>
           </form>
         </CardContent>
