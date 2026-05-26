@@ -8,19 +8,21 @@ import { verifyRegistrationResponse } from "@simplewebauthn/server";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, credential, challenge } = await req.json();
+    const { email, studentNumber, credential, challenge } = await req.json();
 
-    if (!email || !credential) {
+    if ((!email && !studentNumber) || !credential) {
       return NextResponse.json(
-        { error: "Email and credential are required" },
+        { error: "Email or student number, and credential are required" },
         { status: 400 },
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    const whereCondition = email
+      ? eq(users.email, email.trim().toLowerCase())
+      : eq(users.studentNumber, studentNumber.trim().toUpperCase());
 
     const user = await db.query.users.findFirst({
-      where: eq(users.email, normalizedEmail),
+      where: whereCondition,
       columns: { id: true },
     });
 

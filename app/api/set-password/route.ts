@@ -7,11 +7,11 @@ import bcrypt from "bcryptjs";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password } = await req.json();
+    const { email, studentNumber, password } = await req.json();
 
-    if (!email || !password) {
+    if ((!email && !studentNumber) || !password) {
       return NextResponse.json(
-        { error: "Email and password are required" },
+        { error: "Email or student number, and password are required" },
         { status: 400 },
       );
     }
@@ -23,14 +23,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const normalizedEmail = email.trim().toLowerCase();
+    // Build the identifier condition: match by email or student number
+    const identifierCondition = email
+      ? eq(users.email, email.trim().toLowerCase())
+      : eq(users.studentNumber, studentNumber.trim().toUpperCase());
 
     // Find user who hasn't set password yet
     const user = await db.query.users.findFirst({
-      where: and(eq(users.email, normalizedEmail), isNull(users.passwordHash)),
+      where: and(identifierCondition, isNull(users.passwordHash)),
       columns: {
         id: true,
         role: true,
+        email: true,
+        studentNumber: true,
       },
     });
 
@@ -38,29 +43,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         {
           error:
-            "No pending account found with this email, or password already set",
+            "No pending account found, or password already set. Check your email or student number.",
         },
         { status: 400 },
       );
     }
 
-    const passwordHash = await bcrypt.hash(password, 12); // 12 is better than 10
+    const passwordHash = await bcrypt.hash(password, 12);
 
     // Update password
     await db
       .update(users)
-      .set({
-        passwordHash,
-        // Optionally mark account as active if you have such a field
-        // isActive: true,
-      })
+      .set({ passwordHash })
       .where(eq(users.id, user.id));
 
     return NextResponse.json({
       success: true,
       message: "Password set successfully",
       userId: user.id,
-      role: user.role, // We'll use this later to decide flow
+      role: user.role,
+      email: user.email,
     });
   } catch (error) {
     console.error("Set password error:", error);

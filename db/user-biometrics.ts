@@ -3,7 +3,7 @@
  * (see drizzle/migrations/0005_biometric_user_columns.sql). They are not on
  * the Drizzle `users` model so INSERTs stay compatible with older DBs.
  */
-import { pool } from "@/db";
+import { sql } from "@/db";
 
 function isMissingBiometricColumn(err: unknown): boolean {
   return (
@@ -18,7 +18,7 @@ export async function getFaceEmbeddingByUserId(
   userId: number,
 ): Promise<number[] | null> {
   try {
-    const { rows } = await pool.query<{ face_embedding: unknown }>(
+    const rows = await sql(
       `SELECT face_embedding FROM "users" WHERE id = $1 LIMIT 1`,
       [userId],
     );
@@ -37,7 +37,7 @@ export async function setFaceEmbeddingByUserId(
   userId: number,
   embedding: number[],
 ): Promise<void> {
-  await pool.query(
+  await sql(
     `UPDATE "users" SET face_embedding = $1::jsonb WHERE id = $2`,
     [JSON.stringify(embedding), userId],
   );
@@ -47,7 +47,7 @@ export async function getWebauthnCredentialByUserId(
   userId: number,
 ): Promise<Record<string, unknown> | null> {
   try {
-    const { rows } = await pool.query<{ webauthn_credential: unknown }>(
+    const rows = await sql(
       `SELECT webauthn_credential FROM "users" WHERE id = $1 LIMIT 1`,
       [userId],
     );
@@ -68,7 +68,7 @@ export async function setWebauthnCredentialByUserId(
   userId: number,
   credential: Record<string, unknown>,
 ): Promise<void> {
-  await pool.query(
+  await sql(
     `UPDATE "users" SET webauthn_credential = $1::jsonb WHERE id = $2`,
     [JSON.stringify(credential), userId],
   );

@@ -4,6 +4,10 @@ import { db } from "@/db";
 import { attendanceRecords } from "@/db/schema";
 import { eq, and, isNull } from "drizzle-orm";
 import { getSession } from "@/lib/auth";
+import {
+  verifyFaceBiometric,
+  verifyFingerprintBiometric,
+} from "@/lib/biometric-verify";
 
 const OFFICES = [
   {
@@ -146,9 +150,6 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  let verifyEndpoint = "";
-  let verifyBody: any = { qrCodeValue };
-
   if (biometricType === "face") {
     if (!faceDescriptor || !Array.isArray(faceDescriptor)) {
       return NextResponse.json(
@@ -156,8 +157,16 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    verifyEndpoint = "/api/attendance/verify-face";
-    verifyBody.faceDescriptor = faceDescriptor;
+    const result = await verifyFaceBiometric(
+      Number(session.id),
+      faceDescriptor as number[],
+    );
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: 403 },
+      );
+    }
   } else {
     if (!credential) {
       return NextResponse.json(
@@ -165,26 +174,16 @@ export async function POST(req: NextRequest) {
         { status: 400 },
       );
     }
-    verifyEndpoint = "/api/attendance/verify-fingerprint";
-    verifyBody.credential = credential;
-  }
-
-  // Call biometric verification
-  const verifyRes = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}${verifyEndpoint}`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(verifyBody),
-    },
-  );
-
-  if (!verifyRes.ok) {
-    const errorData = await verifyRes.json().catch(() => ({}));
-    return NextResponse.json(
-      { error: errorData.error || "Biometric verification failed" },
-      { status: verifyRes.status },
+    const result = await verifyFingerprintBiometric(
+      Number(session.id),
+      credential,
     );
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error },
+        { status: 403 },
+      );
+    }
   }
 
   // 4. All checks passed → Perform Clock Out

@@ -25,6 +25,7 @@ export default function SetPasswordAndBiometricsPage() {
 
   const [step, setStep] = useState<Step>("password");
   const [email, setEmail] = useState("");
+  const [studentNumber, setStudentNumber] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [accountRole, setAccountRole] = useState<string>("STUDENT");
@@ -46,10 +47,14 @@ export default function SetPasswordAndBiometricsPage() {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
     const emailFromUrl = params.get("email");
+    const studentNumberFromUrl = params.get("studentNumber");
     if (emailFromUrl && !email) {
       setEmail(emailFromUrl);
     }
-  }, [email]);
+    if (studentNumberFromUrl && !studentNumber) {
+      setStudentNumber(studentNumberFromUrl.toUpperCase());
+    }
+  }, [email, studentNumber]);
 
   const loadFaceModels = async () => {
     if (modelsLoaded || isLoadingModels) return;
@@ -167,21 +172,26 @@ export default function SetPasswordAndBiometricsPage() {
       toast.error("Password must be at least 8 characters");
       return;
     }
-    if (!email.trim()) {
-      toast.error("Please enter your email");
+    if (!email.trim() && !studentNumber.trim()) {
+      toast.error("Please enter your email or student number");
       return;
     }
 
     setLoading(true);
 
     try {
+      const body: Record<string, string> = { password };
+      if (email.trim()) {
+        body.email = email.trim().toLowerCase();
+      }
+      if (studentNumber.trim()) {
+        body.studentNumber = studentNumber.trim().toUpperCase();
+      }
+
       const res = await fetch("/api/set-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          password,
-        }),
+        body: JSON.stringify(body),
       });
 
       const data = await res.json();
@@ -191,6 +201,9 @@ export default function SetPasswordAndBiometricsPage() {
       }
 
       setAccountRole(data.role || "STUDENT");
+      if (data.email && !email) {
+        setEmail(data.email);
+      }
       toast.success("Password set successfully!", {
         description: "Now let's set up your biometrics for quick login.",
       });
@@ -208,8 +221,8 @@ export default function SetPasswordAndBiometricsPage() {
 
   // Step 2: Face Recognition
   const handleSetupFace = async () => {
-    if (!email.trim()) {
-      toast.error("Email is required");
+    if (!email.trim() && !studentNumber.trim()) {
+      toast.error("Email or student number is required");
       return;
     }
     if (!modelsLoaded) {
@@ -233,13 +246,16 @@ export default function SetPasswordAndBiometricsPage() {
         throw new Error("No face detected. Please position your face clearly.");
       }
 
+      const faceBody: Record<string, unknown> = {
+        faceDescriptor: Array.from(detections.descriptor),
+      };
+      if (email.trim()) faceBody.email = email.trim().toLowerCase();
+      if (studentNumber.trim()) faceBody.studentNumber = studentNumber.trim().toUpperCase();
+
       const res = await fetch("/api/setup-face", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          faceDescriptor: Array.from(detections.descriptor),
-        }),
+        body: JSON.stringify(faceBody),
       });
 
       const data = await res.json();
@@ -264,8 +280,8 @@ export default function SetPasswordAndBiometricsPage() {
 
   // Step 3: Fingerprint / Passkey via WebAuthn
   const handleSetupFingerprint = async () => {
-    if (!email.trim()) {
-      toast.error("Email is required");
+    if (!email.trim() && !studentNumber.trim()) {
+      toast.error("Email or student number is required");
       return;
     }
     if (!window.PublicKeyCredential) {
@@ -281,7 +297,8 @@ export default function SetPasswordAndBiometricsPage() {
       const challengeBuffer = challengeBytes.buffer as ArrayBuffer;
       const challenge = toBase64Url(challengeBuffer);
 
-      const userIdBytes = new TextEncoder().encode(email.trim().toLowerCase());
+      const userIdentifier = email.trim().toLowerCase() || studentNumber.trim().toUpperCase();
+      const userIdBytes = new TextEncoder().encode(userIdentifier);
       const credential = (await navigator.credentials.create({
         publicKey: {
           challenge: challengeBytes,
@@ -291,8 +308,8 @@ export default function SetPasswordAndBiometricsPage() {
           },
           user: {
             id: userIdBytes,
-            name: email.trim().toLowerCase(),
-            displayName: email.trim().toLowerCase(),
+            name: userIdentifier,
+            displayName: userIdentifier,
           },
           pubKeyCredParams: [
             { type: "public-key", alg: -7 },
@@ -310,14 +327,17 @@ export default function SetPasswordAndBiometricsPage() {
         throw new Error("Passkey registration was cancelled");
       }
 
+      const fpBody: Record<string, unknown> = {
+        challenge,
+        credential: credentialToJson(credential),
+      };
+      if (email.trim()) fpBody.email = email.trim().toLowerCase();
+      if (studentNumber.trim()) fpBody.studentNumber = studentNumber.trim().toUpperCase();
+
       const res = await fetch("/api/setup-fingerprint", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: email.trim().toLowerCase(),
-          challenge,
-          credential: credentialToJson(credential),
-        }),
+        body: JSON.stringify(fpBody),
       });
 
       const data = await res.json();
@@ -346,6 +366,24 @@ export default function SetPasswordAndBiometricsPage() {
         return (
           <form onSubmit={handleSetPassword} className="space-y-6">
             <div className="space-y-2">
+              <Label htmlFor="studentNumber">Student Number (CFC-XXXXXX)</Label>
+              <Input
+                id="studentNumber"
+                placeholder="CFC-123456"
+                value={studentNumber}
+                onChange={(e) => setStudentNumber(e.target.value.toUpperCase())}
+                disabled={loading}
+                autoFocus
+              />
+            </div>
+
+            <div className="relative flex items-center gap-2 text-xs text-neutral-400">
+              <span className="flex-1 border-t border-neutral-200" />
+              or
+              <span className="flex-1 border-t border-neutral-200" />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="email">Your Email</Label>
               <Input
                 id="email"
@@ -353,8 +391,6 @@ export default function SetPasswordAndBiometricsPage() {
                 placeholder="yourname@domain.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                required
-                autoFocus
                 disabled={loading}
               />
             </div>
