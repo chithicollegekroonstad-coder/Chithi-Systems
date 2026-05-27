@@ -263,7 +263,7 @@ function RegistrationContent() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-red-50 p-4 sm:p-6">
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 sm:px-6 sm:py-12">
       <RegistrationCard>
         <ProgressBar steps={steps} currentStep={step} />
 
@@ -325,7 +325,13 @@ function RegistrationContent() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading registration...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex flex-1 items-center justify-center px-4 py-24 text-neutral-600">
+          Loading registration…
+        </div>
+      }
+    >
       <RegistrationContent />
     </Suspense>
   );

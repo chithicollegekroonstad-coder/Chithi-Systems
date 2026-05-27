@@ -18,7 +18,10 @@ export async function createStaff(formData: FormData) {
     throw new Error("Email, first name, and last name are required");
   }
 
-  const existing = await db.select().from(users).where(eq(users.email, email));
+  const existing = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email));
   if (existing.length > 0) {
     throw new Error("Email already in use");
   }

@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:migration-hashes": "node scripts/print-drizzle-migration-hashes.cjs"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -14,13 +17,17 @@
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",
     "@hookform/resolvers": "^5.2.2",
+    "@neondatabase/serverless": "^1.1.0",
     "@prisma/adapter-neon": "^7.3.0",
+    "@simplewebauthn/browser": "^9.0.1",
+    "@simplewebauthn/server": "^9.0.3",
     "@vercel/blob": "^2.0.1",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
+    "face-api.js": "^0.22.2",
     "file-saver": "^2.0.5",
     "html5-qrcode": "^2.3.8",
     "input-otp": "^1.4.2",

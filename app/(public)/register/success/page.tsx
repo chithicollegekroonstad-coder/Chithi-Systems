@@ -4,6 +4,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { CheckCircle2 } from "lucide-react";
 
 export default function RegistrationSuccess() {
   const router = useRouter();
@@ -11,50 +12,36 @@ export default function RegistrationSuccess() {
   useEffect(() => {
     const timer = setTimeout(() => {
       router.push("/");
-    }, 4500); // 4.5 seconds
+    }, 4500);
 
     return () => clearTimeout(timer);
   }, [router]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-red-50 p-6">
-      <div className="text-center max-w-2xl mx-auto space-y-8">
-        <div className="mx-auto w-24 h-24 rounded-full bg-green-100 flex items-center justify-center">
-          <svg
-            className="w-12 h-12 text-green-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={3}
-              d="M5 13l4 4L19 7"
-            />
-          </svg>
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 sm:px-6">
+      <div className="mx-auto max-w-2xl space-y-8 rounded-2xl border border-red-100/90 bg-white/80 p-10 text-center shadow-lg shadow-red-950/5 ring-1 ring-red-50/80 backdrop-blur-sm sm:p-12">
+        <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-emerald-50 ring-2 ring-emerald-100/80">
+          <CheckCircle2 className="h-14 w-14 text-emerald-600" aria-hidden />
         </div>
 
-        <h1 className="text-4xl sm:text-5xl font-bold text-gray-900">
-          Application Submitted Successfully!
-        </h1>
-
-        <p className="text-xl text-gray-600">
-          Thank you for registering! Your application is now under review.
-        </p>
-
-        <p className="text-lg text-gray-500">
-          Redirecting to home page in a few seconds...
-        </p>
-
-        <div className="flex flex-col sm:flex-row gap-4 justify-center pt-6">
-          <Button
-            onClick={() => router.push("/")}
-            className="bg-red-600 hover:bg-red-700 text-white px-8"
-          >
-            Go to Home Now
-          </Button>
+        <div className="space-y-3">
+          <h1 className="text-balance text-3xl font-bold tracking-tight text-neutral-900 sm:text-4xl">
+            Application submitted successfully
+          </h1>
+          <p className="text-pretty text-lg text-neutral-600">
+            Thank you for registering! Your application is now under review.
+          </p>
+          <p className="text-sm text-neutral-500">
+            Redirecting to the home page in a few seconds…
+          </p>
         </div>
+
+        <Button
+          onClick={() => router.push("/")}
+          className="rounded-xl bg-red-600 px-8 font-semibold shadow-md shadow-red-600/20 hover:bg-red-700"
+        >
+          Go to home now
+        </Button>
       </div>
     </div>
   );

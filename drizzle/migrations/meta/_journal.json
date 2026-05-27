@@ -36,6 +36,13 @@
       "when": 1771578262801,
       "tag": "0004_charming_songbird",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1773000000000,
+      "tag": "0005_biometric_user_columns",
+      "breakpoints": true
     }
   ]
 }

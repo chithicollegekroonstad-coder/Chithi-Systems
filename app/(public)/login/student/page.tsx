@@ -40,7 +40,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/auth/student-login", {
+      const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ studentNumber, password }),
@@ -70,14 +70,33 @@ export default function LoginPage() {
     }
   };
 
+  const isApprovedInLocalDemo = () => {
+    try {
+      const appsRaw = localStorage.getItem("applications");
+      if (!appsRaw) return false;
+      const apps = JSON.parse(appsRaw) as Array<{
+        studentNumber?: string;
+        status?: string;
+      }>;
+      const normalized = studentNumber.trim().toUpperCase();
+      return apps.some(
+        (a) =>
+          a?.studentNumber?.toUpperCase() === normalized &&
+          a?.status === "approved",
+      );
+    } catch {
+      return false;
+    }
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-white to-red-50 p-6">
-      <Card className="w-full max-w-md shadow-2xl border-red-100">
-        <CardHeader className="text-center">
-          <CardTitle className="text-3xl font-bold text-red-700">
-            Login
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-16 sm:px-6">
+      <Card className="w-full max-w-md rounded-2xl border border-red-100/90 bg-white/85 shadow-lg shadow-red-950/5 ring-1 ring-red-50/80 backdrop-blur-sm">
+        <CardHeader className="space-y-2 text-center">
+          <CardTitle className="text-3xl font-bold tracking-tight text-neutral-900">
+            Student login
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-base text-neutral-600">
             Enter your student number and password
           </CardDescription>
         </CardHeader>
@@ -122,15 +141,32 @@ export default function LoginPage() {
 
             <Button
               type="submit"
-              className="w-full bg-red-600 hover:bg-red-700"
+              className="w-full rounded-xl bg-red-600 font-semibold shadow-md shadow-red-600/20 hover:bg-red-700"
               disabled={loading}
             >
               {loading ? "Logging in..." : "Login"}
             </Button>
 
-            <p className="text-center text-sm text-gray-500 mt-4">
+            {studentNumber.trim() && isApprovedInLocalDemo() && (
+              <p className="text-center text-sm text-neutral-600">
+                Approved but no password yet?{" "}
+                <Link
+                  href={`/set-password?studentNumber=${encodeURIComponent(
+                    studentNumber.trim().toUpperCase(),
+                  )}`}
+                  className="font-medium text-red-600 underline-offset-4 hover:underline"
+                >
+                  Create your password
+                </Link>
+              </p>
+            )}
+
+            <p className="mt-4 text-center text-sm text-neutral-500">
               If your account is frozen, please{" "}
-              <Link href="/" className="text-red-600 hover:underline">
+              <Link
+                href="/"
+                className="font-medium text-red-600 underline-offset-4 hover:underline"
+              >
                 re-register
               </Link>
             </p>

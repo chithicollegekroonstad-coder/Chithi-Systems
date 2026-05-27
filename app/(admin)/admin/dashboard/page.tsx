@@ -95,8 +95,8 @@ function AdminDashboardContent() {
   }, [applications]);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-white to-red-50 p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="min-h-screen px-4 py-8 sm:p-8">
+      <div className="mx-auto max-w-7xl">
         {isStealthMode && <StealthModeBanner />}
         <DashboardHeader />
 
@@ -126,7 +126,13 @@ function AdminDashboardContent() {
 
 export default function AdminDashboard() {
   return (
-    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center text-neutral-600">
+          Loading…
+        </div>
+      }
+    >
       <AdminDashboardContent />
     </Suspense>
   );

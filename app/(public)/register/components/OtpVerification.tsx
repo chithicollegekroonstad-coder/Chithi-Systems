@@ -90,7 +90,7 @@ export default function OtpVerification({
           type="button"
           onClick={handleVerify}
           disabled={isVerifying || otp.length !== 6}
-          className="bg-red-600 hover:bg-red-700 min-w-[140px]"
+          className="bg-red-600 hover:bg-red-700 min-w-35"
         >
           {isVerifying ? (
             <>

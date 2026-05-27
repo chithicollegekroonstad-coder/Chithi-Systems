@@ -28,7 +28,7 @@ export default function RootLayout({
       <body
         className={cn(
           inter.className,
-          "min-h-screen bg-gradient-to-br from-white to-red-50/30 antialiased",
+          "min-h-screen bg-white antialiased",
         )}
       >
         <ThemeProvider

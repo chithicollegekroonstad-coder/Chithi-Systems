@@ -73,6 +73,7 @@ export async function POST(req: NextRequest) {
 
     // Check if email already registered
     const existingUser = await db.query.users.findFirst({
+      columns: { id: true },
       where: eq(users.email, data.email),
     });
 
@@ -86,6 +87,7 @@ export async function POST(req: NextRequest) {
     // Check if ID number already registered
     if (data.idNumber) {
       const existingId = await db.query.users.findFirst({
+        columns: { id: true },
         where: eq(users.idNumber, data.idNumber),
       });
 

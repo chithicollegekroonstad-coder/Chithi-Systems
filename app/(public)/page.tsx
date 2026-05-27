@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { GraduationCap, QrCode, ShieldCheck } from "lucide-react";
+import { QrCode, ShieldCheck, Sparkles, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
 export default function Home() {
@@ -19,89 +19,124 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex flex-col">
-      {/* Hero */}
-      <section className="flex-1 flex flex-col items-center justify-center px-6 py-24 text-center bg-gradient-to-b from-white via-red-50/50 to-white">
-        <div className="max-w-4xl mx-auto space-y-8">
-          <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight">
-            Welcome to{" "}
-            <span className="bg-gradient-to-r from-red-600 to-red-400 bg-clip-text text-transparent">
-              CHITHI FET-COLLEGE
-            </span>
-          </h1>
+    <>
+      <section className="relative flex-1 px-4 pb-20 pt-12 sm:px-6 sm:pt-16 md:pt-20">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="mb-6 inline-flex items-center gap-2 rounded-full border border-red-200/90 bg-white/80 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-red-700 shadow-sm backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-red-500" aria-hidden />
+              Admissions & attendance
+            </p>
 
-          <div className="flex flex-col space-y-2 absolute bottom-13 right-7">
-            <div className="   w-2 h-7 bg-red-600 rounded-full "></div>
-            <div className="  w-2 h-2 bg-red-300 rounded-full "></div>
+            <h1 className="text-balance text-4xl font-bold tracking-tight text-neutral-900 sm:text-5xl md:text-6xl md:leading-[1.1]">
+              Welcome to{" "}
+              <span className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 bg-clip-text text-transparent">
+                CHITHI FET-COLLEGE
+              </span>
+            </h1>
 
-            <Link
-              href="/admin/login"
-              className="   w-2 h-3 bg-red-200 rounded-full cursor-default "
-            ></Link>
+            <p className="mx-auto mt-5 max-w-2xl text-pretty text-base text-neutral-600 sm:text-lg">
+              Apply online, track your application, and access classes with a
+              streamlined registration and attendance experience.
+            </p>
+
+            {isFrozen ? (
+              <div className="mx-auto mt-12 max-w-xl rounded-2xl border border-orange-200/90 bg-gradient-to-br from-orange-50/95 to-white p-8 text-left shadow-lg shadow-orange-900/5 ring-1 ring-orange-100/80 sm:p-10">
+                <h2 className="text-xl font-semibold text-orange-900 sm:text-2xl">
+                  Your account is frozen
+                </h2>
+                <p className="mt-3 text-neutral-700">
+                  Your previous registration is complete. To continue, please
+                  re-register.
+                </p>
+                <Button
+                  asChild
+                  size="lg"
+                  className="mt-8 w-full rounded-xl bg-red-600 hover:bg-red-700 sm:w-auto"
+                >
+                  <a href="/register">Re-register now</a>
+                </Button>
+              </div>
+            ) : applicationPending ? (
+              <div className="mx-auto mt-12 max-w-xl rounded-2xl border border-amber-200/90 bg-gradient-to-br from-amber-50/95 to-white p-8 text-left shadow-lg shadow-amber-900/5 ring-1 ring-amber-100/80 sm:p-10">
+                <h2 className="text-xl font-semibold text-amber-900 sm:text-2xl">
+                  Your application is pending
+                </h2>
+                <p className="mt-3 text-neutral-700">
+                  Thank you for applying! We are reviewing your registration.
+                </p>
+                <p className="mt-4 text-neutral-600">
+                  If approved, you will receive your student number (CFC-XXXXXX)
+                  via email.
+                </p>
+              </div>
+            ) : (
+              <div className="mt-12 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+                <Button
+                  asChild
+                  size="lg"
+                  className="h-12 min-w-[200px] rounded-xl bg-red-600 px-10 font-semibold shadow-md shadow-red-600/20 transition-[transform,box-shadow] hover:scale-[1.02] hover:bg-red-700 hover:shadow-lg sm:h-14"
+                >
+                  <Link href="/register" className="inline-flex items-center gap-2">
+                    Start application
+                    <ArrowRight className="h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="lg"
+                  variant="outline"
+                  className="h-12 min-w-[200px] rounded-xl border-2 border-red-600/90 bg-white/90 text-red-700 shadow-sm backdrop-blur-sm transition-[transform,box-shadow,background-color] hover:scale-[1.02] hover:border-red-700 hover:bg-red-50 hover:text-red-800 sm:h-14"
+                >
+                  <Link href="/choose-account">Login</Link>
+                </Button>
+              </div>
+            )}
           </div>
+      </section>
 
-          {isFrozen ? (
-            <div className="bg-orange-50 border border-orange-200 rounded-xl p-8 max-w-xl mx-auto">
-              <h2 className="text-2xl font-semibold text-orange-800 mb-4">
-                Your Account is Frozen
-              </h2>
-              <p className="text-gray-700 text-lg">
-                Your previous registration is complete. To continue, please
-                re-register.
-              </p>
-              <Button
-                asChild
-                size="lg"
-                className="mt-6 bg-red-600 hover:bg-red-700"
+      <section
+        className="border-t border-red-100/80 bg-white/40 px-4 py-16 backdrop-blur-[2px] sm:px-6"
+        aria-labelledby="features-heading"
+      >
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-12 text-center">
+              <h2
+                id="features-heading"
+                className="text-2xl font-bold tracking-tight text-neutral-900 sm:text-3xl"
               >
-                <a href="/register">Re-register Now</a>
-              </Button>
-            </div>
-          ) : applicationPending ? (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-8 max-w-xl mx-auto">
-              <h2 className="text-2xl font-semibold text-yellow-800 mb-4">
-                Your Application is Pending
+                Built for students & staff
               </h2>
-              <p className="text-gray-700 text-lg">
-                Thank you for applying! We are reviewing your registration.
-              </p>
-              <p className="text-gray-700 mt-4">
-                If approved, you will receive your student number (CFC-XXXXXX)
-                via email.
+              <p className="mt-3 text-neutral-600">
+                Everything you need to register and stay on track.
               </p>
             </div>
-          ) : (
-            <div className="flex flex-wrap justify-center gap-4 mt-10">
-              <Button asChild size="lg" className="bg-red-600 hover:bg-red-700">
-                <Link href="/register">Apply Now</Link>
-              </Button>
-              <Button asChild size="lg" variant="outline">
-                <Link href="/choose-account">Login</Link>
-              </Button>
-            </div>
-          )}
-        </div>
-      </section>
 
-      {/* Features */}
-      <section className="py-20 px-6 bg-white">
-        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-8">
-          <div className="p-6 border rounded-lg text-center">
-            <QrCode className="mx-auto h-12 w-12 text-red-600 mb-4" />
-            <h3 className="text-xl font-semibold">QR Attendance</h3>
-            <p className="mt-2 text-gray-600">
-              Scan in class to mark attendance
-            </p>
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="group rounded-2xl border border-red-100/90 bg-white/70 p-8 shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
+                  <QrCode className="h-6 w-6" aria-hidden />
+                </div>
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  QR attendance
+                </h3>
+                <p className="mt-2 leading-relaxed text-neutral-600">
+                  Scan in class to mark attendance quickly and securely.
+                </p>
+              </div>
+              <div className="group rounded-2xl border border-red-100/90 bg-white/70 p-8 shadow-sm shadow-red-950/5 ring-1 ring-red-50/80 transition-[transform,box-shadow] hover:-translate-y-0.5 hover:shadow-md">
+                <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-red-600/10 text-red-600 ring-1 ring-red-600/15">
+                  <ShieldCheck className="h-6 w-6" aria-hidden />
+                </div>
+                <h3 className="text-lg font-semibold text-neutral-900">
+                  Secure registration
+                </h3>
+                <p className="mt-2 leading-relaxed text-neutral-600">
+                  OTP verification and careful review of every application.
+                </p>
+              </div>
+            </div>
           </div>
-          <div className="p-6 border rounded-lg text-center">
-            <ShieldCheck className="mx-auto h-12 w-12 text-red-600 mb-4" />
-            <h3 className="text-xl font-semibold">Secure Registration</h3>
-            <p className="mt-2 text-gray-600">
-              OTP verification and pending review
-            </p>
-          </div>
-        </div>
       </section>
-    </div>
+    </>
   );
 }
